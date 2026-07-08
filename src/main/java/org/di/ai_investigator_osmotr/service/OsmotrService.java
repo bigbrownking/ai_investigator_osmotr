@@ -6,6 +6,7 @@ import org.di.ai_investigator_osmotr.dto.notification.OsmotrProcessingMessage;
 import org.di.ai_investigator_osmotr.dto.notification.OsmotrProcessingStatus;
 import org.di.ai_investigator_osmotr.dto.notification.OsmotrResultMessage;
 import org.di.ai_investigator_osmotr.dto.request.OsmotrGenerateReportRequest;
+import org.di.ai_investigator_osmotr.dto.response.OsmotrDataItemDto;
 import org.di.ai_investigator_osmotr.dto.response.OsmotrReportResponse;
 import org.di.ai_investigator_osmotr.dto.response.OsmotrUploadResponse;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -29,7 +30,7 @@ import java.util.List;
 public class OsmotrService {
 
     private final RabbitTemplate rabbitTemplate;
-    private final WebClient webClient;
+    private final WebClient.Builder webClient;
 
     @Value("${ai.model.url}")
     private String osmotrModelUrl;
@@ -62,7 +63,7 @@ public class OsmotrService {
             fileHeaders.setContentType(MediaType.APPLICATION_PDF);
             body.add("file", new HttpEntity<>(resource, fileHeaders));
 
-            OsmotrUploadResponse uploadResponse = webClient.post()
+            OsmotrUploadResponse uploadResponse = webClient.build().post()
                     .uri(osmotrModelUrl + ":" + osmotrModelPort + "/api/upload")
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                     .bodyValue(body)
@@ -74,6 +75,7 @@ public class OsmotrService {
             log.info("Osmotr step 1 done: {} documents found in case {}",
                     uploadResponse != null ? uploadResponse.getTotalDocuments() : 0, caseNumber);
 
+            log.info("Documents: {}", uploadResponse.getDocuments());
             log.info("Osmotr step 2: generating report for case {}", caseNumber);
 
             OsmotrGenerateReportRequest reportRequest = OsmotrGenerateReportRequest.builder()
@@ -83,7 +85,7 @@ public class OsmotrService {
                     .build();
 
 
-            OsmotrReportResponse reportResponse = webClient.post()
+            OsmotrReportResponse reportResponse = webClient.build().post()
                     .uri(osmotrModelUrl + ":" + osmotrModelPort + "/api/generate-report-direct")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(reportRequest)

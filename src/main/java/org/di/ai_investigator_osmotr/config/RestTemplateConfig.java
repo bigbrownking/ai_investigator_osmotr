@@ -1,5 +1,6 @@
 package org.di.ai_investigator_osmotr.config;
 
+import io.netty.channel.ChannelOption;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -22,12 +23,15 @@ public class RestTemplateConfig {
     }
 
     @Bean
-    public WebClient webClient() {
+    public WebClient.Builder webClientBuilder() {
         HttpClient httpClient = HttpClient.create()
-                .responseTimeout(Duration.ofHours(12));
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
+                .responseTimeout(Duration.ofHours(1));
 
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
-                .build();
+                .codecs(configurer -> configurer
+                        .defaultCodecs()
+                        .maxInMemorySize(50 * 1024 * 1024));
     }
 }
