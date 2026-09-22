@@ -16,4 +16,5 @@ public class OsmotrProcessingMessage {
     private String caseNumber;
     private String userEmail;
     private Long userId;
+    private String language;
 }

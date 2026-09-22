@@ -62,6 +62,8 @@ public class OsmotrService {
             HttpHeaders fileHeaders = new HttpHeaders();
             fileHeaders.setContentType(MediaType.APPLICATION_PDF);
             body.add("file", new HttpEntity<>(resource, fileHeaders));
+            body.add("case_number", caseNumber);
+            body.add("language", originalMessage.getLanguage());
 
             OsmotrUploadResponse uploadResponse = webClient.build().post()
                     .uri(osmotrModelUrl + ":" + osmotrModelPort + "/api/upload")

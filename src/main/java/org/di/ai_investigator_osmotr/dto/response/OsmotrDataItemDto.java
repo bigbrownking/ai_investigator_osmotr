@@ -1,5 +1,6 @@
 package org.di.ai_investigator_osmotr.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -7,10 +8,14 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OsmotrDataItemDto {
+    private String id;
+
     @JsonProperty("doc_id")
     private String docId;
+
+    private String title;
 
     @JsonProperty("start_page")
     private Integer startPage;

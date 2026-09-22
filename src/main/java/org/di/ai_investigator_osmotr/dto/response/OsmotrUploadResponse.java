@@ -20,6 +20,10 @@ public class OsmotrUploadResponse {
 
     @JsonProperty("total_documents")
     private Integer totalDocuments;
+    private String language;
+
+    @JsonProperty("case_number")
+    private String caseNumber;
 
     private List<OsmotrDataItemDto> documents;
 

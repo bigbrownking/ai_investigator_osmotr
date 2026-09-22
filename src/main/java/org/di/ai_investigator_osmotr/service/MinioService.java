@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 @Slf4j
@@ -16,6 +17,7 @@ import java.io.InputStream;
 @RequiredArgsConstructor
 public class MinioService {
     private final MinioClient minioClient;
+    private final FileCipher fileCipher;
 
     @Value("${minio.bucket.name:cases}")
     private String bucketName;
@@ -42,13 +44,21 @@ public class MinioService {
     public InputStream downloadFile(String fileUrl) {
         try {
             String objectName = extractObjectNameFromUrl(fileUrl);
-            log.info("Downloading file: bucket={}, object={}", bucketName, objectName);
-            return minioClient.getObject(
+            InputStream raw = minioClient.getObject(
                     GetObjectArgs.builder()
                             .bucket(bucketName)
                             .object(objectName)
                             .build()
             );
+
+            if (fileCipher.isEnabled() && fileCipher.isEncryptedName(objectName)) {
+                log.info("🔓 Decrypting file: {}", objectName);
+                byte[] decrypted = fileCipher.decrypt(raw.readAllBytes());
+                return new ByteArrayInputStream(decrypted);
+            }
+
+            return raw;
+
         } catch (Exception e) {
             log.error("Error downloading file from Minio: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to download file", e);
